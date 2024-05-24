@@ -6,6 +6,7 @@ matplotlib.use('Agg')  # Use the non-interactive Agg backend
 import matplotlib.pyplot as plt
 import base64
 import os
+import requests
 
 app = Flask(__name__)
 
@@ -66,6 +67,21 @@ def get_colors(image):
 def index():
     clear_folders()  # Ensure folders are cleared on first request
     if request.method == 'POST':
+        # Verify reCAPTCHA response
+        recaptcha_response = request.form['g-recaptcha-response']
+        secret_key = '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'  # Replace with your actual reCAPTCHA secret key
+
+        verify_url = 'https://www.google.com/recaptcha/api/siteverify'
+        params = {
+            'secret': secret_key,
+            'response': recaptcha_response
+        }
+        response = requests.post(verify_url, data=params)
+        data = response.json()
+
+        if not data['success']:
+            return 'reCAPTCHA verification failed!'
+
         period = float(request.form['period'])
         function = request.form['function']
         image_file = request.files['image']
